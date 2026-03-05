@@ -3,9 +3,17 @@ using UnityEngine;
 public class TowerShooter : MonoBehaviour
 {
     public LayerMask enemyLayer;
+
     public float range = 3.5f;
-    public float fireRate = 1.0f; // 초당 발사(1 = 1초에 1발)
+    public float fireRate = 1f;
+
     public GameObject bulletPrefab;
+
+    public int damage = 1;
+
+    // Splash 옵션
+    public bool useSplash = false;
+    public float splashRadius = 1.2f;
 
     float cooldown = 0f;
 
@@ -18,38 +26,54 @@ public class TowerShooter : MonoBehaviour
         if (target == null) return;
 
         Shoot(target);
+
         cooldown = 1f / fireRate;
     }
 
     Transform FindNearestEnemy()
     {
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, range, enemyLayer);
+
         if (hits.Length == 0) return null;
 
-        Transform best = null;
         float bestDist = float.MaxValue;
+        Transform bestTarget = null;
 
         foreach (var h in hits)
         {
             float d = (h.transform.position - transform.position).sqrMagnitude;
+
             if (d < bestDist)
             {
                 bestDist = d;
-                best = h.transform;
+                bestTarget = h.transform;
             }
         }
-        return best;
+
+        return bestTarget;
     }
 
     void Shoot(Transform target)
     {
+        if (bulletPrefab == null) return;
+
         GameObject b = Instantiate(bulletPrefab, transform.position, Quaternion.identity);
-        b.GetComponent<Bullet>().SetTarget(target);
+
+        Bullet bullet = b.GetComponent<Bullet>();
+
+        if (bullet != null)
+        {
+            bullet.damage = damage;
+            bullet.splash = useSplash;
+            bullet.splashRadius = splashRadius;
+
+            bullet.SetTarget(target);
+        }
     }
 
-    // 범위 시각화(씬에서만)
     void OnDrawGizmosSelected()
     {
+        Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, range);
     }
 }

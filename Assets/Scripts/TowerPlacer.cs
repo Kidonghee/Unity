@@ -2,41 +2,59 @@ using UnityEngine;
 
 public class TowerPlacer : MonoBehaviour
 {
-    public GameObject towerPrefab;
-    public int towerCost = 25;
+    public GameObject basicTowerPrefab;
+    public GameObject sniperTowerPrefab;
+
+    public int basicCost = 25;
+    public int sniperCost = 40;
+
+    GameObject currentPrefab;
+    int currentCost;
+
+    void Start()
+    {
+        SelectBasic();
+    }
 
     void Update()
     {
-        if (!Input.GetMouseButtonDown(0)) return;
+        if (Input.GetKeyDown(KeyCode.Alpha1)) SelectBasic();
+        if (Input.GetKeyDown(KeyCode.Alpha2)) SelectSniper();
 
-        if (towerPrefab == null)
-        {
-            Debug.LogError("towerPrefab 비어있음!");
-            return;
-        }
+        if (!Input.GetMouseButtonDown(0)) return;
 
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 p = new Vector2(mousePos.x, mousePos.y);
 
         Collider2D col = Physics2D.OverlapPoint(p);
-        Debug.Log(col ? $"HIT: {col.name}" : "HIT: null");
-
         if (col == null) return;
 
         BuildSpot spot = col.GetComponent<BuildSpot>();
-        Debug.Log(spot ? "BuildSpot OK" : "BuildSpot null");
-
         if (spot == null) return;
-        if (spot.occupied) { Debug.Log("이미 설치됨"); return; }
 
-        if (MoneyManager.Instance != null && !MoneyManager.Instance.Spend(towerCost))
+        if (spot.occupied) return;
+
+        if (MoneyManager.Instance != null && !MoneyManager.Instance.Spend(currentCost))
         {
             Debug.Log("돈 부족!");
             return;
         }
 
-        Instantiate(towerPrefab, spot.transform.position, Quaternion.identity);
+        Instantiate(currentPrefab, spot.transform.position, Quaternion.identity);
         spot.occupied = true;
-        Debug.Log("TOWER PLACED!");
+    }
+
+    void SelectBasic()
+    {
+        currentPrefab = basicTowerPrefab;
+        currentCost = basicCost;
+        Debug.Log("1: Basic Tower 선택");
+    }
+
+    void SelectSniper()
+    {
+        currentPrefab = sniperTowerPrefab;
+        currentCost = sniperCost;
+        Debug.Log("2: Sniper Tower 선택");
     }
 }

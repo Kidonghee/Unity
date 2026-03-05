@@ -9,13 +9,28 @@ public class UIHud : MonoBehaviour
 
     void Update()
     {
-        if (MoneyManager.Instance != null)
-            moneyText.text = "Money: " + MoneyManager.Instance.Money;
+        if (moneyText != null)
+        {
+            if (MoneyManager.Instance != null)
+                moneyText.text = $"Money: {MoneyManager.Instance.Money}";
+            else
+                moneyText.text = "Money: (no manager)";
+        }
 
-        if (BaseHealth.Instance != null)
-            hpText.text = "HP: " + BaseHealth.Instance.CurrentHp + "/" + BaseHealth.Instance.maxHp;
+        if (hpText != null)
+        {
+            if (BaseHealth.Instance != null)
+                hpText.text = $"HP: {BaseHealth.Instance.CurrentHp}/{BaseHealth.Instance.maxHp}";
+            else
+                hpText.text = "HP: (no base)";
+        }
 
-        if (WaveSpawner.Instance != null)
-            waveText.text = "Wave: " + WaveSpawner.Instance.CurrentWave + "/" + WaveSpawner.Instance.TotalWaves;
+        if (waveText != null)
+        {
+            if (WaveSpawner.Instance != null)
+                waveText.text = $"Wave: {WaveSpawner.Instance.CurrentWave}/{WaveSpawner.Instance.TotalWaves}";
+            else
+                waveText.text = "Wave: (no spawner)";
+        }
     }
 }

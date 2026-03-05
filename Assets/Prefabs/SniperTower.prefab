@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 1810437979237216909}
   - component: {fileID: 6000723630049507510}
   m_Layer: 3
-  m_Name: Tower
+  m_Name: SniperTower
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -107,7 +107,7 @@ MonoBehaviour:
   enemyLayer:
     serializedVersion: 2
     m_Bits: 8
-  range: 3.5
-  fireRate: 1
+  range: 6
+  fireRate: 0.4
   bulletPrefab: {fileID: 5518877911327753746, guid: 204939f29d6440b4188e014affb5a7d3, type: 3}
-  damage: 1
+  damage: 4
