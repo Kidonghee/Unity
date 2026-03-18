@@ -6,31 +6,39 @@ public class UIHud : MonoBehaviour
     public TMP_Text moneyText;
     public TMP_Text hpText;
     public TMP_Text waveText;
+    public TMP_Text towerText;
+    public TMP_Text centerMessageText;
+
+    public BaseHealth baseHealth;
 
     void Update()
     {
-        if (moneyText != null)
-        {
-            if (MoneyManager.Instance != null)
-                moneyText.text = $"Money: {MoneyManager.Instance.Money}";
-            else
-                moneyText.text = "Money: (no manager)";
-        }
+        if (moneyText != null && MoneyManager.Instance != null)
+            moneyText.text = "Money : " + MoneyManager.Instance.Money;
 
-        if (hpText != null)
-        {
-            if (BaseHealth.Instance != null)
-                hpText.text = $"HP: {BaseHealth.Instance.CurrentHp}/{BaseHealth.Instance.maxHp}";
-            else
-                hpText.text = "HP: (no base)";
-        }
+        if (hpText != null && baseHealth != null)
+            hpText.text = "HP : " + baseHealth.CurrentHp + " / " + baseHealth.maxHp;
 
-        if (waveText != null)
+        if (waveText != null && WaveSpawner.Instance != null)
+            waveText.text = "Wave : " + WaveSpawner.Instance.CurrentWave + " / " + WaveSpawner.Instance.TotalWaves;
+
+        if (towerText != null)
+            towerText.text = "Tower : " + TowerSelector.SelectedTower;
+
+        if (centerMessageText == null || baseHealth == null)
+            return;
+
+        if (baseHealth.IsGameOver)
         {
-            if (WaveSpawner.Instance != null)
-                waveText.text = $"Wave: {WaveSpawner.Instance.CurrentWave}/{WaveSpawner.Instance.TotalWaves}";
-            else
-                waveText.text = "Wave: (no spawner)";
+            centerMessageText.text = "GAME OVER";
+        }
+        else if (WaveSpawner.Instance != null && WaveSpawner.Instance.IsClear)
+        {
+            centerMessageText.text = "CLEAR";
+        }
+        else
+        {
+            centerMessageText.text = "";
         }
     }
 }

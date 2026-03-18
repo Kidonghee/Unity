@@ -8,14 +8,27 @@ public class EnemyMover : MonoBehaviour
 
     int index = 0;
 
+    float slowMultiplier = 1f;
+    float slowTimer = 0f;
+
     void Update()
     {
         if (waypoints == null || waypoints.Length == 0) return;
 
+        if (slowTimer > 0f)
+        {
+            slowTimer -= Time.deltaTime;
+            if (slowTimer <= 0f)
+            {
+                slowMultiplier = 1f;
+            }
+        }
+
         Transform target = waypoints[index];
         Vector3 dir = target.position - transform.position;
 
-        float step = speed * Time.deltaTime;
+        float currentSpeed = speed * slowMultiplier;
+        float step = currentSpeed * Time.deltaTime;
 
         if (dir.magnitude <= step)
         {
@@ -25,12 +38,19 @@ public class EnemyMover : MonoBehaviour
             if (index >= waypoints.Length)
             {
                 ReachGoal();
+                return;
             }
         }
         else
         {
             transform.position += dir.normalized * step;
         }
+    }
+
+    public void ApplySlow(float multiplier, float duration)
+    {
+        slowMultiplier = multiplier;
+        slowTimer = duration;
     }
 
     void ReachGoal()

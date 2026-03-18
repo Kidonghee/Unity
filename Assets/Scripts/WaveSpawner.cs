@@ -1,32 +1,37 @@
-using System.Collections;
 using UnityEngine;
-
-[System.Serializable]
-public class Wave
-{
-    public int count = 8;
-    public float spawnInterval = 0.7f;
-    public int enemyHp = 5;
-    public float enemySpeed = 2.5f;
-    public int reward = 5;
-}
+using System.Collections;
 
 public class WaveSpawner : MonoBehaviour
 {
     public static WaveSpawner Instance { get; private set; }
 
-    [Header("References")]
     public GameObject enemyPrefab;
+    public GameObject bossEnemyPrefab;
+
+    public Transform spawnPoint;
     public Transform pathRoot;
 
-    [Header("Waves")]
-    public Wave[] waves;
-    public float waveInterval = 3f;
+    public float timeBetweenWaves = 5f;
+
+    int waveIndex = 0;
+    bool spawning = false;
 
     public int CurrentWave { get; private set; } = 0;
     public int TotalWaves => waves != null ? waves.Length : 0;
 
-    Transform[] waypoints;
+    public bool IsClear { get; private set; } = false;
+
+    [System.Serializable]
+    public class Wave
+    {
+        public int count = 5;
+        public float rate = 1f;
+        public int enemyHp = 5;
+        public int reward = 5;
+        public bool isBossWave = false;
+    }
+
+    public Wave[] waves;
 
     void Awake()
     {
@@ -35,59 +40,104 @@ public class WaveSpawner : MonoBehaviour
 
     void Start()
     {
-        int count = pathRoot.childCount;
-        waypoints = new Transform[count];
-
-        for (int i = 0; i < count; i++)
-            waypoints[i] = pathRoot.GetChild(i);
-
-        StartCoroutine(RunWaves());
+        StartCoroutine(SpawnLoop());
     }
 
-    IEnumerator RunWaves()
+    IEnumerator SpawnLoop()
     {
-        for (int w = 0; w < waves.Length; w++)
+        while (waveIndex < waves.Length)
         {
-            CurrentWave = w + 1;
-            Debug.Log($"Wave {CurrentWave} 시작");
+            if (BaseHealth.Instance != null && BaseHealth.Instance.IsGameOver)
+                yield break;
 
-            Wave wave = waves[w];
+            yield return new WaitForSeconds(timeBetweenWaves);
 
-            for (int i = 0; i < wave.count; i++)
+            if (BaseHealth.Instance != null && BaseHealth.Instance.IsGameOver)
+                yield break;
+
+            if (!spawning)
             {
-                SpawnEnemy(wave);
-                yield return new WaitForSeconds(wave.spawnInterval);
+                CurrentWave = waveIndex + 1;
+                yield return StartCoroutine(SpawnWave(waves[waveIndex]));
+                waveIndex++;
             }
-
-            // 모든 적이 죽을 때까지 대기
-            while (GameObject.FindGameObjectsWithTag("EnemyTag").Length > 0)
-                yield return null;
-
-            yield return new WaitForSeconds(waveInterval);
         }
 
-        Debug.Log("ALL WAVES CLEARED!");
+        // 마지막 웨이브 적 전부 사라질 때까지 대기
+        while (GameObject.FindGameObjectsWithTag("EnemyTag").Length > 0)
+        {
+            if (BaseHealth.Instance != null && BaseHealth.Instance.IsGameOver)
+                yield break;
+
+            yield return null;
+        }
+
+        // 게임오버가 아닐 때만 클리어
+        if (BaseHealth.Instance != null && !BaseHealth.Instance.IsGameOver)
+        {
+            IsClear = true;
+            Debug.Log("GAME CLEAR");
+        }
+    }
+
+    IEnumerator SpawnWave(Wave wave)
+    {
+        spawning = true;
+
+        Debug.Log("Wave " + CurrentWave + " 시작");
+
+        for (int i = 0; i < wave.count; i++)
+        {
+            if (BaseHealth.Instance != null && BaseHealth.Instance.IsGameOver)
+            {
+                spawning = false;
+                yield break;
+            }
+
+            SpawnEnemy(wave);
+            yield return new WaitForSeconds(1f / wave.rate);
+        }
+
+        spawning = false;
     }
 
     void SpawnEnemy(Wave wave)
     {
-        Vector3 spawnPos = waypoints[0].position;
-        GameObject e = Instantiate(enemyPrefab, spawnPos, Quaternion.identity);
+        GameObject prefabToSpawn = wave.isBossWave ? bossEnemyPrefab : enemyPrefab;
 
+        if (prefabToSpawn == null)
+        {
+            Debug.LogWarning("Enemy Prefab 없음");
+            return;
+        }
+
+        GameObject e = Instantiate(prefabToSpawn, spawnPoint.position, Quaternion.identity);
         e.tag = "EnemyTag";
 
-        var mover = e.GetComponent<EnemyMover>();
+        EnemyMover mover = e.GetComponent<EnemyMover>();
         if (mover != null)
         {
-            mover.waypoints = waypoints;
-            mover.speed = wave.enemySpeed;
+            mover.waypoints = GetWaypoints();
         }
 
-        var hp = e.GetComponent<EnemyHealth>();
+        EnemyHealth hp = e.GetComponent<EnemyHealth>();
         if (hp != null)
         {
-            hp.maxHp = wave.enemyHp;
             hp.reward = wave.reward;
+            hp.InitHp(wave.enemyHp);
         }
+    }
+
+    Transform[] GetWaypoints()
+    {
+        int count = pathRoot.childCount;
+        Transform[] points = new Transform[count];
+
+        for (int i = 0; i < count; i++)
+        {
+            points[i] = pathRoot.GetChild(i);
+        }
+
+        return points;
     }
 }

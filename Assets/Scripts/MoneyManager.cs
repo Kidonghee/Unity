@@ -9,25 +9,32 @@ public class MoneyManager : MonoBehaviour
 
     void Awake()
     {
-        if (Instance != null) { Destroy(gameObject); return; }
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         Instance = this;
         Money = startMoney;
-        Debug.Log("Money: " + Money);
     }
 
-    public bool CanAfford(int cost) => Money >= cost;
-
-    public bool Spend(int cost)
+    public bool Spend(int amount)
     {
-        if (Money < cost) return false;
-        Money -= cost;
-        Debug.Log("Money: " + Money);
+        if (Money < amount)
+        {
+            Debug.Log("돈 부족! 현재 돈: " + Money);
+            return false;
+        }
+
+        Money -= amount;
+        Debug.Log("돈 사용: " + amount + " / 남은 돈: " + Money);
         return true;
     }
 
     public void Add(int amount)
     {
         Money += amount;
-        Debug.Log("Money: " + Money);
+        Debug.Log("돈 획득: " + amount + " / 현재 돈: " + Money);
     }
 }

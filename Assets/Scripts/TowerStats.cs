@@ -10,7 +10,9 @@ public class TowerStats : MonoBehaviour
     public int upgradeCost = 20;
     public float upgradeCostMultiplier = 1.5f;
 
-    public int sellPercent = 70; // % 환급
+    public int sellPercent = 70;
+
+    public GameObject rangeIndicator;
 
     TowerShooter shooter;
 
@@ -31,7 +33,6 @@ public class TowerStats : MonoBehaviour
 
     public int GetSellValue()
     {
-        // 지금까지 투자한 금액을 기반으로 환급(간단 버전)
         int invested = buildCost;
 
         int cost = upgradeCost;
@@ -57,7 +58,6 @@ public class TowerStats : MonoBehaviour
 
         level++;
 
-        // 업그레이드 효과(취향대로 조정 가능)
         if (shooter != null)
         {
             shooter.range += 0.6f;
@@ -65,7 +65,6 @@ public class TowerStats : MonoBehaviour
             shooter.damage += 1;
         }
 
-        // 다음 업그레이드 비용 증가
         upgradeCost = Mathf.RoundToInt(upgradeCost * upgradeCostMultiplier);
 
         Debug.Log($"Tower upgraded! Level {level}");
@@ -75,6 +74,7 @@ public class TowerStats : MonoBehaviour
     public void Sell()
     {
         int value = GetSellValue();
+
         if (MoneyManager.Instance != null)
             MoneyManager.Instance.Add(value);
 

@@ -11,9 +11,12 @@ public class TowerShooter : MonoBehaviour
 
     public int damage = 1;
 
-    // Splash 옵션
     public bool useSplash = false;
     public float splashRadius = 1.2f;
+
+    public bool useSlow = false;
+    public float slowMultiplier = 0.5f;
+    public float slowDuration = 2f;
 
     float cooldown = 0f;
 
@@ -26,7 +29,6 @@ public class TowerShooter : MonoBehaviour
         if (target == null) return;
 
         Shoot(target);
-
         cooldown = 1f / fireRate;
     }
 
@@ -66,6 +68,10 @@ public class TowerShooter : MonoBehaviour
             bullet.damage = damage;
             bullet.splash = useSplash;
             bullet.splashRadius = splashRadius;
+
+            bullet.slow = useSlow;
+            bullet.slowMultiplier = slowMultiplier;
+            bullet.slowDuration = slowDuration;
 
             bullet.SetTarget(target);
         }

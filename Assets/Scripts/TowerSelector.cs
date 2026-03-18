@@ -1,59 +1,33 @@
-using TMPro;
 using UnityEngine;
 
 public class TowerSelector : MonoBehaviour
 {
-    public static TowerSelector Instance { get; private set; }
-
-    public TowerStats selected;
-    public TMP_Text towerInfoText;
-
-    void Awake() => Instance = this;
+    public static int SelectedTower = 1;
 
     void Update()
     {
-        // 타워 선택
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetKeyDown(KeyCode.Alpha1) || Input.GetKeyDown(KeyCode.Keypad1))
         {
-            Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            Vector2 p = new Vector2(mousePos.x, mousePos.y);
-
-            Collider2D col = Physics2D.OverlapPoint(p);
-            if (col != null)
-            {
-                TowerStats ts = col.GetComponent<TowerStats>();
-                if (ts != null) selected = ts;
-            }
+            SelectedTower = 1;
+            Debug.Log("Tower 선택");
         }
 
-        // 선택 없음
-        if (selected == null)
+        if (Input.GetKeyDown(KeyCode.Alpha2) || Input.GetKeyDown(KeyCode.Keypad2))
         {
-            if (towerInfoText != null) towerInfoText.text = "";
-            return;
+            SelectedTower = 2;
+            Debug.Log("SniperTower");
         }
 
-        // UI 갱신
-        if (towerInfoText != null)
+        if (Input.GetKeyDown(KeyCode.Alpha3) || Input.GetKeyDown(KeyCode.Keypad3))
         {
-            string up = selected.CanUpgrade()
-                ? $"U: Upgrade ({selected.GetUpgradeCost()})"
-                : "U: MAX";
-
-            string sell = $"X: Sell ({selected.GetSellValue()})";
-
-            towerInfoText.text = $"Tower Lv {selected.level}\n{up}\n{sell}";
+            SelectedTower = 3;
+            Debug.Log("SplashTower");
         }
 
-        // U = 업그레이드
-        if (Input.GetKeyDown(KeyCode.U))
-            selected.TryUpgrade();
-
-        // X = 판매
-        if (Input.GetKeyDown(KeyCode.X))
+        if (Input.GetKeyDown(KeyCode.Alpha4) || Input.GetKeyDown(KeyCode.Keypad4))
         {
-            selected.Sell();
-            selected = null;
+            SelectedTower = 4;
+            Debug.Log("SlowTower");
         }
     }
 }
