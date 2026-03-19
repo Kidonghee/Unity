@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.EventSystems;
 
 public class TowerPlacer : MonoBehaviour
 {
@@ -29,7 +30,6 @@ public class TowerPlacer : MonoBehaviour
     bool isPlacing = false;
 
     GameObject placementPreview;
-    GameObject previewRangeIndicator;
 
     void Awake()
     {
@@ -56,6 +56,10 @@ public class TowerPlacer : MonoBehaviour
         }
 
         if (!Input.GetMouseButtonDown(0)) return;
+
+        // UI 클릭이면 설치 막기
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            return;
 
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         Vector2 p = new Vector2(mousePos.x, mousePos.y);
@@ -86,8 +90,7 @@ public class TowerPlacer : MonoBehaviour
 
         GameObject tower = Instantiate(currentPrefab, spot.transform.position, Quaternion.identity);
 
-        spot.occupied = true;
-        spot.currentTower = tower;
+        spot.SetOccupied(tower);
 
         TowerSelectable selectable = tower.GetComponent<TowerSelectable>();
         if (selectable != null)
@@ -96,6 +99,9 @@ public class TowerPlacer : MonoBehaviour
         }
 
         Debug.Log(currentTowerName + " 설치 완료");
+
+        // 이게 핵심: 설치 끝나면 배치 모드 종료
+        CancelPlacement();
     }
 
     void UpdateSelectedText()
@@ -117,7 +123,6 @@ public class TowerPlacer : MonoBehaviour
 
         Vector3 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
         mousePos.z = 0f;
-
         placementPreview.transform.position = mousePos;
     }
 
@@ -152,6 +157,7 @@ public class TowerPlacer : MonoBehaviour
         GameObject rangeObj = new GameObject("PreviewRange");
         rangeObj.transform.SetParent(placementPreview.transform);
         rangeObj.transform.localPosition = Vector3.zero;
+        rangeObj.layer = LayerMask.NameToLayer("Ignore Raycast");
 
         SpriteRenderer sr = rangeObj.AddComponent<SpriteRenderer>();
         sr.sprite = previewRangeSprite;
@@ -170,8 +176,6 @@ public class TowerPlacer : MonoBehaviour
         float scaleY = diameter / parentScale.y;
 
         rangeObj.transform.localScale = new Vector3(scaleX, scaleY, 1f);
-
-        previewRangeIndicator = rangeObj;
     }
 
     void DestroyPreview()
@@ -180,7 +184,6 @@ public class TowerPlacer : MonoBehaviour
             Destroy(placementPreview);
 
         placementPreview = null;
-        previewRangeIndicator = null;
     }
 
     public void SelectBasic()

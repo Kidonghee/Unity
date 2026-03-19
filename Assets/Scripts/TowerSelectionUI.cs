@@ -1,5 +1,7 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+using System.Collections;
 
 public class TowerSelectionUI : MonoBehaviour
 {
@@ -7,9 +9,10 @@ public class TowerSelectionUI : MonoBehaviour
 
     public GameObject panel;
     public TMP_Text sellText;
+    public Button sellButton;
 
     TowerSelectable currentTower;
-    bool justOpened = false;
+    bool canSell = false;
 
     void Awake()
     {
@@ -20,27 +23,17 @@ public class TowerSelectionUI : MonoBehaviour
     {
         if (panel != null)
             panel.SetActive(false);
-    }
 
-    void Update()
-    {
-        if (justOpened && Input.GetMouseButtonUp(0))
-        {
-            justOpened = false;
-        }
-
-        if (Input.GetMouseButtonDown(1))
-        {
-            DeselectCurrentTower();
-        }
+        if (sellButton != null)
+            sellButton.interactable = false;
     }
 
     public void SelectTower(TowerSelectable tower)
     {
+        if (tower == null) return;
+
         if (currentTower != null && currentTower != tower)
-        {
             currentTower.ShowRange(false);
-        }
 
         currentTower = tower;
         currentTower.ShowRange(true);
@@ -51,18 +44,40 @@ public class TowerSelectionUI : MonoBehaviour
         if (sellText != null)
             sellText.text = "Sell (" + currentTower.GetSellPrice() + "G)";
 
-        // 방금 열린 직후 클릭은 무시
-        justOpened = true;
+        StopAllCoroutines();
+        StartCoroutine(EnableSellAfterDelay());
+    }
+
+    IEnumerator EnableSellAfterDelay()
+    {
+        canSell = false;
+
+        if (sellButton != null)
+            sellButton.interactable = false;
+
+        // 클릭 겹침 방지
+        yield return new WaitForSeconds(0.15f);
+
+        canSell = true;
+
+        if (sellButton != null)
+            sellButton.interactable = true;
     }
 
     public void OnClickSell()
     {
-        if (justOpened) return;
+        Debug.Log("판매 버튼 클릭");
 
-        if (currentTower != null)
-        {
-            currentTower.Sell();
-        }
+        if (!canSell) return;
+        if (currentTower == null) return;
+
+        currentTower.Sell();
+
+        // 판매 후 패널/배치 상태 정리
+        DeselectCurrentTower();
+
+        if (TowerPlacer.Instance != null)
+            TowerPlacer.Instance.CancelPlacement();
     }
 
     public void DeselectCurrentTower()
@@ -76,6 +91,17 @@ public class TowerSelectionUI : MonoBehaviour
         if (panel != null)
             panel.SetActive(false);
 
-        justOpened = false;
+        canSell = false;
+
+        if (sellButton != null)
+            sellButton.interactable = false;
+    }
+
+    void Update()
+    {
+        if (Input.GetMouseButtonDown(1))
+        {
+            DeselectCurrentTower();
+        }
     }
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class TowerSelectable : MonoBehaviour
 {
@@ -15,9 +16,7 @@ public class TowerSelectable : MonoBehaviour
 
     void Start()
     {
-        if (stats == null) return;
-
-        if (stats.rangeIndicator != null)
+        if (stats != null && stats.rangeIndicator != null)
         {
             stats.rangeIndicator.SetActive(false);
             UpdateRangeVisual();
@@ -26,23 +25,24 @@ public class TowerSelectable : MonoBehaviour
 
     void OnMouseDown()
     {
-        if (TowerSelectionUI.Instance != null)
-        {
-            TowerSelectionUI.Instance.SelectTower(this);
-        }
+        if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
+            return;
+
+        if (TowerSelectionUI.Instance == null)
+            return;
+
+        TowerSelectionUI.Instance.SelectTower(this);
     }
 
     public void ShowRange(bool show)
     {
-        if (stats != null && stats.rangeIndicator != null)
-        {
-            if (show)
-            {
-                UpdateRangeVisual();
-            }
+        if (stats == null || stats.rangeIndicator == null)
+            return;
 
-            stats.rangeIndicator.SetActive(show);
-        }
+        if (show)
+            UpdateRangeVisual();
+
+        stats.rangeIndicator.SetActive(show);
     }
 
     void UpdateRangeVisual()
@@ -51,7 +51,6 @@ public class TowerSelectable : MonoBehaviour
             return;
 
         float diameter = shooter.range * 2f;
-
         Vector3 parentScale = transform.lossyScale;
 
         float scaleX = diameter / parentScale.x;
@@ -68,23 +67,12 @@ public class TowerSelectable : MonoBehaviour
 
     public void Sell()
     {
-        if (TowerSelectionUI.Instance != null)
-        {
-            TowerSelectionUI.Instance.DeselectCurrentTower();
-        }
-
         if (ownerSpot != null)
-        {
             ownerSpot.ClearSpot();
-        }
 
         if (stats != null)
-        {
             stats.Sell();
-        }
         else
-        {
             Destroy(gameObject);
-        }
     }
 }
