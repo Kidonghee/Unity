@@ -12,6 +12,8 @@ public class Bullet : MonoBehaviour
     public float slowMultiplier = 0.5f;
     public float slowDuration = 2f;
 
+    public GameObject hitEffectPrefab; // 추가
+
     Transform target;
 
     public void SetTarget(Transform t)
@@ -30,6 +32,9 @@ public class Bullet : MonoBehaviour
         Vector3 dir = target.position - transform.position;
         float step = speed * Time.deltaTime;
 
+        float angle = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(0f, 0f, angle);
+
         if (dir.magnitude <= step)
         {
             Hit();
@@ -41,6 +46,12 @@ public class Bullet : MonoBehaviour
 
     void Hit()
     {
+        // 맞은 위치에 이펙트 생성
+        if (hitEffectPrefab != null)
+        {
+            Instantiate(hitEffectPrefab, target.position, Quaternion.identity);
+        }
+
         if (!splash)
         {
             EnemyHealth hp = target.GetComponent<EnemyHealth>();
